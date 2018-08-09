@@ -1,0 +1,7 @@
+.git
+.idea
+.svn
+tests
+config
+yarn.lock
+logs
