@@ -9,9 +9,9 @@ theme : "white"
 ## 用法
 
 ```js
-import SDK from 'jm-sdk'
+const Sdk = require('jm-sdk')
 
-let sdk = new SDK({
+let sdk = new Sdk({
   api: 'http://api.test.jamma.cn',
   modules: {
     sso: {},
@@ -61,15 +61,6 @@ store.state // {name: 'jeff'}
 store.sso = {token: 'test'}
 store.state // {name: 'jeff', sso: {token: 'test'}}
 
-// 支持事件
-store
-    .on('get', (key, value) => {
-      console.log('get', key, value)
-    })
-    .on('set', (key, value) => {
-      console.log('set', key, value)
-    })
-
 ```
 
 --
@@ -99,8 +90,10 @@ store
 
 ## storage
 
+- 浏览器持久化存储 localStorage
+
 ```js
-let storage = sdk.storage // 浏览器持久化存储 localStorage
+let storage = sdk.storage
 
 // 例子
 storage.setJson('sso', {token: '12345676'})
@@ -136,8 +129,8 @@ storage
 ## request 请求
 
 - 所有请求返回Promise对象
-- 如果store.sso存在, 所有ajax请求会在headers中附加Authorization, 用于自动验证。
-- 例如：sso 值为 {token: '123'}, 则ajax请求的 headers:{ Authorization: '123', ...}
+- 如果store.sso存在, 所有请求headers中附加Authorization, 用于自动验证。
+- 例如：sso 值为 {token: '123'}, 则请求的 headers:{ Authorization: '123', ...}
 
 --
 
