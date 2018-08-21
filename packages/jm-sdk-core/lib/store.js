@@ -1,38 +1,51 @@
 const event = require('jm-event')
 
+function validKey (key) {
+  return [
+    'state',
+    'on',
+    'once',
+    'off',
+    'emit',
+    '_events',
+    'eventNames',
+    'listeners'
+  ].indexOf(key) === -1
+}
+
+const handler = {
+  get: function (target, key, receiver) {
+    if (validKey(key)) {
+      let value = target.state[key]
+      target.emit('get', key, value)
+      return value
+    }
+    return Reflect.get(target, key, receiver)
+  },
+  set: function (target, key, value, receiver) {
+    if (validKey(key)) {
+      target.state = Object.assign({[key]: value})
+      target.emit('set', key, value)
+      return true
+    }
+    return Reflect.get(target, key, value, receiver)
+  },
+  deleteProperty: function (target, key) {
+    if (validKey(key)) {
+      delete target.state[key]
+      target.emit('remove', key)
+      return true
+    }
+    return Reflect.deleteProperty(target, key)
+  }
+}
+
 class Store {
-  constructor () {
+  constructor (opts = {}) {
     event.enableEvent(this)
-    this.stores = []
-  }
-
-  setItem (k, v) {
-    this.emit('setItem', k, v)
-    this.stores[k] = v
-  }
-
-  getItem (k, defaultV) {
-    let v = this.stores[k] || defaultV
-    this.emit('getItem', k, v)
-    return v
-  }
-
-  removeItem (k) {
-    this.emit('removeItem', k)
-    delete this.stores[k]
-  }
-
-  setJson (k, o) {
-    this.emit('setJson', k, o)
-    this.setItem(k, JSON.stringify(o))
-  }
-
-  getJson (k, defaultV) {
-    let v = this.getItem(k)
-    if (!v) return defaultV
-    let o = JSON.parse(v) || defaultV
-    this.emit('getJson', k, o)
-    return o
+    this.state = opts.state || {}
+    let doc = new Proxy(this, handler)
+    return doc
   }
 }
 

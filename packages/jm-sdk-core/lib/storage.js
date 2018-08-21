@@ -1,5 +1,40 @@
 const event = require('jm-event')
-const Store = require('./store')
+
+class Store {
+  constructor () {
+    event.enableEvent(this)
+    this.store = {}
+  }
+
+  setItem (k, v) {
+    this.emit('setItem', k, v)
+    this.store[k] = v
+  }
+
+  getItem (k, defaultV) {
+    let v = this.store[k] || defaultV
+    this.emit('getItem', k, v)
+    return v
+  }
+
+  removeItem (k) {
+    this.emit('removeItem', k)
+    delete this.store[k]
+  }
+
+  setJson (k, o) {
+    this.emit('setJson', k, o)
+    this.setItem(k, JSON.stringify(o))
+  }
+
+  getJson (k, defaultV) {
+    let v = this.getItem(k)
+    if (!v) return defaultV
+    let o = JSON.parse(v) || defaultV
+    this.emit('getJson', k, o)
+    return o
+  }
+}
 
 class Storage {
   constructor () {

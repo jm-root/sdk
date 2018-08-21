@@ -15,4 +15,5 @@ class Sdk {
   }
 }
 
+Sdk.Store = Store
 module.exports = Sdk
