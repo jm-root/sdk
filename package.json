@@ -1,7 +1,6 @@
 {
   "scripts": {
-    "precommit": "lint-staged",
-    "lint-staged": "lint-staged"
+    "precommit": "lint-staged"
   },
   "lint-staged": {
     "**/*.{js}": [
