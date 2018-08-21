@@ -1,7 +1,9 @@
+const name = 'passport'
+
 module.exports = function (opts) {
   let app = this
-  this.bind('passport')
-  let $ = app.passport
+  this.bind(name)
+  let $ = app[name]
 
   $.login = async function (username, password) {
     let uri = '/login'
@@ -10,9 +12,9 @@ module.exports = function (opts) {
   }
 
   return {
-    name: 'passport',
+    name,
     unuse: () => {
-      delete app.passport
+      delete app[name]
     }
   }
 }

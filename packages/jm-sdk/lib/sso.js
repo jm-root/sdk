@@ -1,7 +1,9 @@
+const name = 'sso'
+
 module.exports = function (opts) {
   let app = this
-  this.bind('sso')
-  let $ = app.sso
+  this.bind(name)
+  let $ = app[name]
 
   $.verify = async function () {
     let uri = '/verify'
@@ -22,9 +24,9 @@ module.exports = function (opts) {
   }
 
   return {
-    name: 'sso',
+    name,
     unuse: () => {
-      delete app.sso
+      delete app[name]
     }
   }
 }

@@ -1,3 +1,5 @@
+const name = 'login'
+
 module.exports = function (opts) {
   let app = this
   let doLogin = null
@@ -57,7 +59,7 @@ module.exports = function (opts) {
   }
 
   return {
-    name: 'login',
+    name,
     unuse: () => {
       delete app.checkLgoin
       delete app.isLoggedIn
