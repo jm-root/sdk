@@ -24,11 +24,11 @@ const handler = {
   },
   set: function (target, key, value, receiver) {
     if (validKey(key)) {
-      target.state = Object.assign({[key]: value})
+      target.state = Object.assign(target.state, {[key]: value})
       target.emit('set', key, value)
       return true
     }
-    return Reflect.get(target, key, value, receiver)
+    return Reflect.set(target, key, value, receiver)
   },
   deleteProperty: function (target, key) {
     if (validKey(key)) {

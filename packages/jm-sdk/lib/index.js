@@ -1,3 +1,4 @@
+const event = require('jm-event')
 const Core = require('jm-sdk-core')
 const ms = require('jm-sdk-ms')
 const sso = require('./sso')
@@ -10,7 +11,7 @@ class Sdk extends Core {
   constructor (opts = {}) {
     super(opts)
     this.ready = false
-    this.store.setJson('config', opts)
+    this.store.config = opts
 
     const mdls = {
       ms,
@@ -18,7 +19,7 @@ class Sdk extends Core {
       passport,
       login
     }
-    let modules = opts.modules || {}
+    let modules = Object.assign({ms: {}}, opts.modules)
     Object.keys(mdls).forEach(
       key => {
         if (!modules[key]) return
@@ -35,17 +36,17 @@ class Sdk extends Core {
     this.initing = new Promise(
       async (resolve, reject) => {
         try {
-          let client = await this.ms.client({uri: this.store.getJson('config', {}).api})
+          let client = await this.ms.client({uri: this.store.config.api})
           this.request = async function (...args) {
             let opts = this.ms.utils.preRequest(...args)
-            let sso = this.store.getJson('sso', {})
+            let sso = this.store.sso || {}
             if (sso.token) {
               opts.headers || (opts.headers = {})
               opts.headers.Authorization = sso.token
             }
             try {
               let doc = await client.request(opts)
-              let s = `ajax request:\n${JSON.stringify(opts, null, 2)}\najax result:\n${JSON.stringify(doc.data || doc, null, 2)}`
+              let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc.data || doc, null, 2)}`
               this.logger.debug(s)
               return doc
             } catch (e) {
@@ -56,7 +57,7 @@ class Sdk extends Core {
                   opts.headers || (opts.headers = {})
                   opts.headers.Authorization = sso.token
                   let doc = await client.request(opts)
-                  let s = `ajax request:\n${JSON.stringify(opts, null, 2)}\najax result:\n${JSON.stringify(doc.data || doc, null, 2)}`
+                  let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc.data || doc, null, 2)}`
                   this.logger.debug(s)
                   return doc
                 }
@@ -65,11 +66,7 @@ class Sdk extends Core {
             }
           }
           types.forEach(type => {
-            this[type] = function (...args) {
-              let opts = this.ms.utils.preRequest(...args)
-              opts.type = type
-              return this.request(opts)
-            }
+            this.bindType(this, type)
           })
           this.ready = true
           resolve(this.ready)
@@ -83,23 +80,25 @@ class Sdk extends Core {
     return this.initing
   }
 
+  bindType ($, type, uri = '') {
+    $[type] = async (...args) => {
+      let opts = this.ms.utils.preRequest(...args)
+      opts.uri = `${uri}${opts.uri}`
+      opts.type = type
+      let doc = await this.request(opts)
+      return doc
+    }
+  }
+
   bind (name, uri) {
     uri || (uri = '/' + name)
     let $ = {}
+    event.enableEvent($, {async: true})
     types.forEach(type => {
-      $[type] = async (...args) => {
-        let opts = this.ms.utils.preRequest(...args)
-        opts.uri = `${uri}${opts.uri}`
-        let doc = await this[type](opts)
-        return doc
-      }
+      this.bindType($, type, uri)
     })
     this[name] = $
     return this
-  }
-
-  isBrowser () {
-    return typeof window !== 'undefined'
   }
 }
 

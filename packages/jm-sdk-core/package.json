@@ -1,6 +1,6 @@
 {
   "name": "jm-sdk-core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "sdk core lib for create sdk more easy",
   "main": "./lib/index",
   "scripts": {

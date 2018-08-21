@@ -7,7 +7,7 @@ const storage = require('./storage')
 class Sdk {
   constructor (opts = {}) {
     mdl.enableModule(this)
-    event.enableEvent(this)
+    event.enableEvent(this, {async: true})
     this.logger = opts.logger || log.getLogger('sdk')
     this.getLogger = opts.getLogger || log.getLogger
     this.store = opts.store || new Store()
@@ -15,5 +15,4 @@ class Sdk {
   }
 }
 
-Sdk.Store = Store
 module.exports = Sdk

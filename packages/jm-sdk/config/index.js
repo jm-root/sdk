@@ -1,4 +1,3 @@
-require('log4js').configure(require('path').join(__dirname, 'log4js.json'))
 let config = {
   localhost: {
     api: 'http://localhost:3000'
@@ -12,8 +11,11 @@ let config = {
 }
 
 const defaultConfig = {
+  logLevel: 'debug',
   modules: {
-    ms: {},
+    ms: {
+      logging: true
+    },
     sso: {},
     passport: {},
     login: {}

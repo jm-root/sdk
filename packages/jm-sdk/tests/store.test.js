@@ -1,18 +1,33 @@
 const sdk = require('./sdk')
+let $ = sdk.store
 
-const $ = sdk.store
-$.on('setItem', (k, v) => {
-  console.log(`event setItem(${k},${v})`)
+beforeAll(async () => {
+  $.name = 'jeff'
+  $
+    .on('get', (key, value) => {
+      console.log('get', key, value)
+    })
+    .on('set', (key, value) => {
+      console.log('set', key, value)
+    })
+    .on('remove', (key) => {
+      console.log('remove', key)
+    })
 })
-$.on('getItem', (k, v) => {
-  console.log(`event getItem(${k},${v})`)
-})
+
 describe('store', () => {
-  test('setItem', async () => {
-    $.setItem('test', 123)
+  test('get', async () => {
+    console.log('state', $.state)
+    expect($.name).toBeTruthy()
   })
-  test('getItem', async () => {
-    let val = $.getItem('test')
-    expect(val).toBeTruthy()
+  test('set', async () => {
+    $.name = 'jeff2'
+    console.log('state', $.state)
+    expect($.name).toBeTruthy()
+  })
+  test('remove', async () => {
+    delete $.name
+    console.log('state', $.state)
+    expect(!$.name).toBeTruthy()
   })
 })

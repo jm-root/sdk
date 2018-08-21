@@ -3,24 +3,23 @@ module.exports = function (opts) {
   let doLogin = null
 
   async function checkOrLogin () {
-    let doc = app.storage.getJson('sso')
+    let store = app.store
+    let storage = app.storage
+    let doc = storage.getJson('sso')
     if (doc) {
-      app.store.setJson('sso', doc)
+      store.sso = doc
       doc = await app.sso.verify()
       if (!doc.token) {
         doc = null
-        app.storage.removeItem('sso')
-        app.store.removeItem('sso')
+        storage.removeItem('sso')
+        delete store.sso
       }
     }
     if (!doc) {
       if (!app.login) throw new Error('login 接口未实现')
       doc = await app.login()
       if (doc && doc.token) {
-        app.store.setJson('sso', doc)
-      } else {
-        doc = null
-        throw new Error('未登陆')
+        store.sso = doc
       }
     }
     return doc
@@ -46,14 +45,14 @@ module.exports = function (opts) {
    * 判断是否已经登陆
    */
   app.isLoggedIn = function () {
-    return this.store.getJson('sso')
+    return this.store.sso
   }
 
   /**
    * 登出
    */
   app.logout = function () {
-    this.store.removeItem('sso')
+    delete this.store.sso
     this.storage.removeItem('sso')
   }
 
