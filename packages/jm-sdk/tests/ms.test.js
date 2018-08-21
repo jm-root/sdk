@@ -1,6 +1,5 @@
 const sdk = require('./sdk')
 const $ = sdk
-const logger = $.logger
 
 beforeAll(async () => {
   await $.onReady()
