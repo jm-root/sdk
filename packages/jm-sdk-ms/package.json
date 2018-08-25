@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/jm-root/sdk",
   "dependencies": {
-    "jm-ms": "^2.0.1"
+    "jm-ms": "^2.0.2"
   }
 }
