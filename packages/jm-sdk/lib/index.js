@@ -13,6 +13,10 @@ class Sdk extends Core {
     this.ready = false
     this.store.config = opts
 
+    types.forEach(type => {
+      this.bindType(this, type)
+    })
+
     const mdls = {
       ms,
       sso,
@@ -27,7 +31,6 @@ class Sdk extends Core {
         this.use(mdls[key], cfg)
       }
     )
-    this.onReady()
   }
 
   async onReady () {
@@ -36,49 +39,45 @@ class Sdk extends Core {
 
     this.initing = new Promise(
       async (resolve, reject) => {
-        try {
-          let client = await this.ms.client({uri: this.store.config.api})
-          this.request = async function (...args) {
-            let opts = this.ms.utils.preRequest(...args)
-            let sso = this.store.sso || {}
-            if (sso.token) {
-              opts.headers || (opts.headers = {})
-              opts.headers.Authorization = sso.token
-            }
-            try {
-              let doc = await client.request(opts)
-              let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc.data || doc, null, 2)}`
-              this.logger.debug(s)
-              return doc
-            } catch (e) {
-              if (e.data && e.data.err === 401 && this.checkLogin) {
-                this.logger.debug('not login, so checkLogin and try again')
-                sso = await this.checkLogin()
-                if (sso.token) {
-                  opts.headers || (opts.headers = {})
-                  opts.headers.Authorization = sso.token
-                  let doc = await client.request(opts)
-                  let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc.data || doc, null, 2)}`
-                  this.logger.debug(s)
-                  return doc
-                }
-              }
-              throw e
-            }
-          }
-          types.forEach(type => {
-            this.bindType(this, type)
-          })
+        this.once('ready', doc => {
           this.ready = true
           resolve(this.ready)
-        } catch (e) {
-          this.ready = false
-          reject(e)
-        }
+        })
         delete this.initing
       }
     )
     return this.initing
+  }
+
+  async request (...args) {
+    this.ready || await this.onReady()
+    if (!this.router) throw new Error('router not inited.')
+    let opts = this.ms.utils.preRequest(...args)
+    let sso = this.store.sso || {}
+    if (sso.token) {
+      opts.headers || (opts.headers = {})
+      opts.headers.Authorization = sso.token
+    }
+    try {
+      let doc = await this.router.request(opts)
+      let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc, null, 2)}`
+      this.logger.debug(s)
+      return doc
+    } catch (e) {
+      if (e.data && e.data.err === 401 && this.checkLogin) {
+        this.logger.debug('not login, so checkLogin and try again')
+        sso = await this.checkLogin()
+        if (sso.token) {
+          opts.headers || (opts.headers = {})
+          opts.headers.Authorization = sso.token
+          let doc = await this.router.request(opts)
+          let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc, null, 2)}`
+          this.logger.debug(s)
+          return doc
+        }
+      }
+      throw e
+    }
   }
 
   bindType ($, type, uri = '') {

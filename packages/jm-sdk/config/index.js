@@ -13,7 +13,10 @@ let config = {
 const defaultConfig = {
   logLevel: 'debug',
   modules: {
-    ms: {},
+    ms: {
+      logging: true,
+      benchmark: true
+    },
     config: {},
     sso: {},
     passport: {},
