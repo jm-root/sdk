@@ -1,6 +1,6 @@
 {
   "name": "jm-sdk-ms",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "module ms for jm-sdk",
   "main": "./lib/index",
   "scripts": {

@@ -5,6 +5,7 @@ module.exports = function (opts) {
   app.ms = new MS(opts)
   app.router = app.ms.router()
 
+  if (!this.store.config.api) return app.emit('ready')
   app.ms.client({uri: this.store.config.api})
     .then(doc => {
       app.router.use(doc)
