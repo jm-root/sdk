@@ -23,7 +23,7 @@ class Sdk extends Core {
       passport,
       login
     }
-    let modules = Object.assign({ms: {}}, opts.modules)
+    let modules = Object.assign({}, opts.modules)
     Object.keys(mdls).forEach(
       key => {
         if (!modules[key]) return
