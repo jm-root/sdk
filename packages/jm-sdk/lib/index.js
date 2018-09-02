@@ -31,6 +31,8 @@ class Sdk extends Core {
         this.use(mdls[key], cfg)
       }
     )
+
+    this.onReady()
   }
 
   async onReady () {

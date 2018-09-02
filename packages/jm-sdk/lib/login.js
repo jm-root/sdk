@@ -10,7 +10,11 @@ module.exports = function (opts) {
     let doc = storage.getJson('sso')
     if (doc) {
       store.sso = doc
-      doc = await app.sso.verify()
+      try {
+        doc = await app.sso.verify()
+      } catch (e) {
+        doc = e.data || {}
+      }
       if (!doc.token) {
         doc = null
         storage.removeItem('sso')
