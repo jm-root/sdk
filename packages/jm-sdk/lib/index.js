@@ -1,6 +1,6 @@
 const event = require('jm-event')
+const utils = require('jm-ms-core').utils
 const Core = require('jm-sdk-core')
-const ms = require('jm-sdk-ms')
 const sso = require('./sso')
 const passport = require('./passport')
 const login = require('./login')
@@ -18,7 +18,6 @@ class Sdk extends Core {
     })
 
     const mdls = {
-      ms,
       sso,
       passport,
       login
@@ -33,6 +32,15 @@ class Sdk extends Core {
     )
 
     this.onReady()
+  }
+
+  get router () { return this._router }
+
+  set router (value) {
+    if (!value) throw new Error('invalie router')
+    this._router = value
+    this.ready = true
+    this.emit('ready')
   }
 
   async onReady () {
@@ -53,8 +61,8 @@ class Sdk extends Core {
 
   async request (...args) {
     this.ready || await this.onReady()
-    if (!this.router) throw new Error('router not inited.')
-    let opts = this.ms.utils.preRequest(...args)
+    if (!this.router) throw new Error('invalid router')
+    let opts = utils.preRequest(...args)
     let sso = this.store.sso || {}
     if (sso.token) {
       opts.headers || (opts.headers = {})
@@ -84,7 +92,7 @@ class Sdk extends Core {
 
   bindType ($, type, uri = '') {
     $[type] = async (...args) => {
-      let opts = this.ms.utils.preRequest(...args)
+      let opts = utils.preRequest(...args)
       opts.uri = `${uri}${opts.uri}`
       opts.type = type
       let doc = await this.request(opts)
