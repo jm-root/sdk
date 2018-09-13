@@ -30,65 +30,135 @@ function _createClass(Constructor, protoProps, staticProps) {
   return Constructor;
 }
 
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
   }
 
-  return obj;
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf(subClass, superClass);
 }
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+var reservedKeys = ['_events', '_state', 'state'];
 
 function validKey(key) {
-  return ['state', 'on', 'once', 'off', 'emit', '_events', 'eventNames', 'listeners'].indexOf(key) === -1;
+  return reservedKeys.indexOf(key) === -1;
 }
 
-var handler = {
-  get: function get(target, key, receiver) {
-    if (validKey(key)) {
-      var value = target.state[key];
-      target.emit('get', key, value);
-      return value;
-    }
+var Store =
+/*#__PURE__*/
+function (_event$EventEmitter) {
+  _inherits(Store, _event$EventEmitter);
 
-    return Reflect.get(target, key, receiver);
-  },
-  set: function set(target, key, value, receiver) {
-    if (validKey(key)) {
-      target.state = Object.assign(target.state, _defineProperty({}, key, value));
-      target.emit('set', key, value);
-      return true;
-    }
+  function Store() {
+    var _this;
 
-    return Reflect.set(target, key, value, receiver);
-  },
-  deleteProperty: function deleteProperty(target, key) {
-    if (validKey(key)) {
-      delete target.state[key];
-      target.emit('remove', key);
-      return true;
-    }
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-    return Reflect.deleteProperty(target, key);
+    _classCallCheck(this, Store);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Store).call(this, opts));
+    _this._state = {};
+    return _this;
   }
-};
 
-var Store = function Store() {
-  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  _createClass(Store, [{
+    key: "listen",
+    value: function listen() {
+      var _this2 = this;
 
-  _classCallCheck(this, Store);
+      for (var _len = arguments.length, keys = new Array(_len), _key = 0; _key < _len; _key++) {
+        keys[_key] = arguments[_key];
+      }
 
-  jmEvent.enableEvent(this);
-  this.state = opts.state || {};
-  var doc = new Proxy(this, handler);
-  return doc;
-};
+      keys.forEach(function (key) {
+        if (!validKey(key)) throw new Error("".concat(key, " can not be listened"));
+        Reflect.defineProperty(_this2, key, {
+          configurable: true,
+          enumerable: true,
+          get: function get() {
+            var value = _this2._state[key];
+
+            _this2.emit('get', key, value);
+
+            return value;
+          },
+          set: function set(value) {
+            _this2._state[key] = value;
+
+            _this2.emit('set', key, value);
+          }
+        });
+      });
+      return this;
+    }
+  }, {
+    key: "state",
+    get: function get() {
+      var value = Object.assign({}, this._state, this);
+      reservedKeys.forEach(function (key) {
+        delete value[key];
+      });
+      this.emit('get', 'state', value);
+      return value;
+    },
+    set: function set(value) {
+      var _this3 = this;
+
+      this.emit('set', 'state', value);
+      Object.keys(this).forEach(function (key) {
+        if (!validKey(key)) return;
+        var d = Reflect.getOwnPropertyDescriptor(_this3, key);
+        if (d && d.set && d.get) return;
+        delete _this3[key];
+      });
+      this._state = {};
+      Object.keys(value).forEach(function (key) {
+        _this3[key] = value[key];
+      });
+    }
+  }]);
+
+  return Store;
+}(jmEvent.EventEmitter);
 
 var store = Store;
 

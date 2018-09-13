@@ -1,51 +1,62 @@
 const event = require('jm-event')
 
+const reservedKeys = [
+  '_events',
+  '_state',
+  'state'
+]
+
 function validKey (key) {
-  return [
-    'state',
-    'on',
-    'once',
-    'off',
-    'emit',
-    '_events',
-    'eventNames',
-    'listeners'
-  ].indexOf(key) === -1
+  return reservedKeys.indexOf(key) === -1
 }
 
-const handler = {
-  get: function (target, key, receiver) {
-    if (validKey(key)) {
-      let value = target.state[key]
-      target.emit('get', key, value)
-      return value
-    }
-    return Reflect.get(target, key, receiver)
-  },
-  set: function (target, key, value, receiver) {
-    if (validKey(key)) {
-      target.state = Object.assign(target.state, {[key]: value})
-      target.emit('set', key, value)
-      return true
-    }
-    return Reflect.set(target, key, value, receiver)
-  },
-  deleteProperty: function (target, key) {
-    if (validKey(key)) {
-      delete target.state[key]
-      target.emit('remove', key)
-      return true
-    }
-    return Reflect.deleteProperty(target, key)
-  }
-}
-
-class Store {
+class Store extends event.EventEmitter {
   constructor (opts = {}) {
-    event.enableEvent(this)
-    this.state = opts.state || {}
-    let doc = new Proxy(this, handler)
-    return doc
+    super(opts)
+    this._state = {}
+  }
+
+  listen (...keys) {
+    keys.forEach(key => {
+      if (!validKey(key)) throw new Error(`${key} can not be listened`)
+      Reflect.defineProperty(this, key, {
+        configurable: true,
+        enumerable: true,
+        get: () => {
+          const value = this._state[key]
+          this.emit('get', key, value)
+          return value
+        },
+        set: value => {
+          this._state[key] = value
+          this.emit('set', key, value)
+        }
+      })
+    })
+    return this
+  }
+
+  get state () {
+    let value = Object.assign({}, this._state, this)
+    reservedKeys.forEach(key => {
+      delete value[key]
+    })
+    this.emit('get', 'state', value)
+    return value
+  }
+
+  set state (value) {
+    this.emit('set', 'state', value)
+    Object.keys(this).forEach(key => {
+      if (!validKey(key)) return
+      const d = Reflect.getOwnPropertyDescriptor(this, key)
+      if (d && d.set && d.get) return
+      delete this[key]
+    })
+    this._state = {}
+    Object.keys(value).forEach(key => {
+      this[key] = value[key]
+    })
   }
 }
 
