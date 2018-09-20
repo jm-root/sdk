@@ -5,7 +5,7 @@ const sso = require('./sso')
 const passport = require('./passport')
 const login = require('./login')
 
-const types = ['get', 'post', 'put', 'delete']
+const types = ['get', 'post', 'put', 'delete', 'patch']
 
 class Sdk extends Core {
   constructor (opts = {}) {

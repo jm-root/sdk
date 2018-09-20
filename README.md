@@ -67,10 +67,20 @@ store.state // {name: 'jeff', sso: {token: 'test'}}
 
 ## store 事件
 
-- 支持 set, get, remove 3 种事件
+- 先调用listen监听指定key的事件
+
+- listen('key')
+
+- listen('key1', 'key2' ...)
+
+- 支持 set, get 2 种事件
+
 
 ```js
 let store = sdk.store
+
+// 监听
+store.listen('name')
 
 // 支持事件
 store
@@ -79,9 +89,6 @@ store
     })
     .on('set', (key, value) => {
       console.log('set', key, value)
-    })
-    .on('remove', (key) => {
-      console.log('remove', key)
     })
 
 ```
@@ -221,7 +228,7 @@ sdk.sso.emit('test')
 config.logLevel: error, warn, info, debug
 
 ```
-sdk.logger.logLevel = config.logLevel
+sdk.logger.level = config.logLevel
 
 sdk.logger.debug('日志')
 ```
