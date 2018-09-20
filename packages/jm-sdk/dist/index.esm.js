@@ -291,7 +291,7 @@ var login = function login(opts) {
         }, function (e) {
           doc = e.data || {};
         }), function () {
-          if (!doc.token) {
+          if (!doc || !doc.token) {
             doc = null;
             storage.removeItem('sso');
             delete store.sso;
@@ -361,6 +361,16 @@ var login = function login(opts) {
   };
 };
 
+function _invoke$1(body, then) {
+  var result = body();
+
+  if (result && result.then) {
+    return result.then(then);
+  }
+
+  return then(result);
+}
+
 function _catch$1(body, recover) {
   try {
     var result = body();
@@ -373,16 +383,6 @@ function _catch$1(body, recover) {
   }
 
   return result;
-}
-
-function _invoke$1(body, then) {
-  var result = body();
-
-  if (result && result.then) {
-    return result.then(then);
-  }
-
-  return then(result);
 }
 
 function _await$3(value, then, direct) {
@@ -428,7 +428,7 @@ var _async$3 = function () {
 }();
 var utils = jmMsCore.utils;
 var sso$1 = sso;
-var types = ['get', 'post', 'put', 'delete'];
+var types = ['get', 'post', 'put', 'delete', 'patch'];
 
 var Sdk =
 /*#__PURE__*/
@@ -523,13 +523,19 @@ function (_Core) {
                   if (sso$$1.token) {
                     opts.headers || (opts.headers = {});
                     opts.headers.Authorization = sso$$1.token;
-                    return _await$3(_this3.router.request(opts), function (doc) {
-                      var s = "request:\n".concat(JSON.stringify(opts, null, 2), "\nresult:\n").concat(JSON.stringify(doc, null, 2));
+                    return _catch$1(function () {
+                      return _await$3(_this3.router.request(opts), function (doc) {
+                        var s = "request:\n".concat(JSON.stringify(opts, null, 2), "\nresult:\n").concat(JSON.stringify(doc, null, 2));
 
-                      _this3.logger.debug(s);
+                        _this3.logger.debug(s);
 
-                      _exit = true;
-                      return doc;
+                        _exit = true;
+                        return doc;
+                      });
+                    }, function (e) {
+                      _this3.emit('error', e);
+
+                      throw e;
                     });
                   }
                 }();
@@ -537,6 +543,9 @@ function (_Core) {
             }
           }, function (_result) {
             if (_exit) return _result;
+
+            _this3.emit('error', e);
+
             throw e;
           });
         });

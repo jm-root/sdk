@@ -1,6 +1,6 @@
 {
   "name": "jm-sdk",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "sdk lib",
   "main": "index.js",
   "module": "./lib/index",

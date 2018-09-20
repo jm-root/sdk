@@ -80,12 +80,18 @@ class Sdk extends Core {
         if (sso.token) {
           opts.headers || (opts.headers = {})
           opts.headers.Authorization = sso.token
-          let doc = await this.router.request(opts)
-          let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc, null, 2)}`
-          this.logger.debug(s)
-          return doc
+          try {
+            let doc = await this.router.request(opts)
+            let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc, null, 2)}`
+            this.logger.debug(s)
+            return doc
+          } catch (e) {
+            this.emit('error', e)
+            throw e
+          }
         }
       }
+      this.emit('error', e)
       throw e
     }
   }

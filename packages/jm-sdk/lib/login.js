@@ -15,7 +15,7 @@ module.exports = function (opts) {
       } catch (e) {
         doc = e.data || {}
       }
-      if (!doc.token) {
+      if (!doc || !doc.token) {
         doc = null
         storage.removeItem('sso')
         delete store.sso
