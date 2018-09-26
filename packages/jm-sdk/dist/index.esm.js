@@ -533,20 +533,24 @@ function (_Core) {
                         return doc;
                       });
                     }, function (e) {
-                      _this3.emit('error', e);
+                      return _await$3(_this3.emit('error', e, opts), function (ret) {
+                        if (ret !== undefined) {
+                          _exit = true;
+                          return ret;
+                        }
 
-                      throw e;
+                        throw e;
+                      });
                     });
                   }
                 }();
               });
             }
           }, function (_result) {
-            if (_exit) return _result;
-
-            _this3.emit('error', e);
-
-            throw e;
+            return _exit ? _result : _await$3(_this3.emit('error', e, opts), function (ret) {
+              if (ret !== undefined) return ret;
+              throw e;
+            });
           });
         });
       }, _this3$ready);

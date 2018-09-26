@@ -86,12 +86,14 @@ class Sdk extends Core {
             this.logger.debug(s)
             return doc
           } catch (e) {
-            this.emit('error', e)
+            const ret = await this.emit('error', e, opts)
+            if (ret !== undefined) return ret
             throw e
           }
         }
       }
-      this.emit('error', e)
+      const ret = await this.emit('error', e, opts)
+      if (ret !== undefined) return ret
       throw e
     }
   }
