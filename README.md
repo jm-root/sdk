@@ -186,6 +186,26 @@ sdk.post('/passport/login',
 
 ---
 
+### request 错误拦截
+
+- sdk.on('error')
+
+
+```js
+
+sdk.on('error', (e, opts)=>{
+  console.log(e) // 纸打印错误，不拦截结果
+})
+
+sdk.on('error', (e, opts)=>{
+  console.log(e)
+  return e.data || null // 拦截错误，并给出新的返回值
+})
+
+```
+
+---
+
 ## uri 绑定
 
 ```js

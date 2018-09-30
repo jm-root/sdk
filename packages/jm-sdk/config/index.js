@@ -1,8 +1,10 @@
 let config = {
   localhost: {
+    logLevel: 'debug',
     api: 'http://localhost:3000'
   },
   development: {
+    logLevel: 'debug',
     api: 'http://api.test.jamma.cn'
   },
   production: {
@@ -11,7 +13,6 @@ let config = {
 }
 
 const defaultConfig = {
-  logLevel: 'debug',
   modules: {
     config: {},
     sso: {},

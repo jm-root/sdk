@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
+var jmErr = _interopDefault(require('jm-err'));
 var jmEvent = _interopDefault(require('jm-event'));
 var jmMsCore = _interopDefault(require('jm-ms-core'));
 var jmSdkCore = _interopDefault(require('jm-sdk-core'));
@@ -109,30 +110,109 @@ var _async = function () {
     };
   };
 }();
+var Err = jmErr.Err;
+var name = 'config';
 
-var name = 'sso';
-
-var sso = function sso(opts) {
+var config = function config(opts) {
   var app = this;
   this.bind(name);
   var $ = app[name];
-  $.verify = _async(function () {
+  /**
+   * 获取配置
+   * @param root 根(必填)
+   * @param key 配置项(必填)
+   * @returns {Promise<*>}
+   */
+
+  $.getConfig = _async(function (root, key) {
     var _this = this;
 
-    var uri = '/verify';
-    return _this.get(uri);
+    if (!root || !key) throw jmErr.err(Err.FA_PARAMS);
+    return _this.get("/".concat(root, "/").concat(key));
   });
-  $.touch = _async(function (opts) {
+  /**
+   * 设置配置信息
+   * @param root 根(必填)
+   * @param key 配置项(必填)
+   * @param value 配置值(可选)
+   * @param expire 过期时间(可选, 单位秒, 默认0代表永不过期)
+   * @returns {Promise<void>}
+   */
+
+  $.setConfig = _async(function (root, key, value) {
     var _this2 = this;
 
-    var uri = '/touch';
-    return _this2.post(uri);
+    var expire = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+    if (!root || !key) throw jmErr.err(Err.FA_PARAMS);
+    return _this2.post("/".concat(root, "/").concat(key), {
+      value: value,
+      expire: expire
+    });
   });
-  $.signout = _async(function () {
+  /**
+   * 删除配置信息
+   * @param root 根(必填)
+   * @param key 配置项(必填)
+   * @returns {Promise<*>}
+   */
+
+  $.removeConfig = _async(function (root, key) {
     var _this3 = this;
 
-    var uri = '/signout';
-    return _this3.get(uri);
+    if (!root || !key) throw jmErr.err(Err.FA_PARAMS);
+    return _this3.delete("/".concat(root, "/").concat(key));
+  });
+  /**
+   * 删除根配置, 所有根下面的配置信息都被删除
+   * @param root 根(必填)
+   * @returns {Promise<*>}
+   */
+
+  $.removeRoot = _async(function (root) {
+    var _this4 = this;
+
+    if (!root) throw jmErr.err(Err.FA_PARAMS);
+    return _this4.delete("/".concat(root));
+  });
+  /**
+   * 列出配置项, 返回{rows:[]}
+   * @param root 根(必填)
+   * @returns {Promise<*>}
+   */
+
+  $.getKeys = _async(function (root) {
+    var _this5 = this;
+
+    if (!root) throw jmErr.err(Err.FA_PARAMS);
+    return _this5.get("/".concat(root));
+  });
+  /**
+   * 列出配置项及值
+   * @param root 根(必填)
+   * @returns {Promise<*>}
+   */
+
+  $.getConfigs = _async(function (root) {
+    var _this6 = this;
+
+    if (!root) throw jmErr.err(Err.FA_PARAMS);
+    return _this6.get("/".concat(root, "?all=1"));
+  });
+  /**
+   * 设置多个配置信息
+   * @param root 根(必填)
+   * @param opts
+   * @returns {Promise<*>}
+   */
+
+  $.setConfigs = _async(function (root) {
+    var _this7 = this;
+
+    var opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    if (!root) throw jmErr.err(Err.FA_PARAMS);
+    return _this7.post("/".concat(root), {
+      value: opts
+    });
   });
   return {
     name: name,
@@ -175,13 +255,78 @@ var _async$1 = function () {
   };
 }();
 
-var name$1 = 'passport';
+var name$1 = 'sso';
 
-var passport = function passport(opts) {
+var sso = function sso(opts) {
   var app = this;
   this.bind(name$1);
   var $ = app[name$1];
-  $.login = _async$1(function (username, password) {
+  $.verify = _async$1(function () {
+    var _this = this;
+
+    var uri = '/verify';
+    return _this.get(uri);
+  });
+  $.touch = _async$1(function (opts) {
+    var _this2 = this;
+
+    var uri = '/touch';
+    return _this2.post(uri);
+  });
+  $.signout = _async$1(function () {
+    var _this3 = this;
+
+    var uri = '/signout';
+    return _this3.get(uri);
+  });
+  return {
+    name: name$1,
+    unuse: function unuse() {
+      delete app[name$1];
+    }
+  };
+};
+
+var _async$2 = function () {
+  try {
+    if (isNaN.apply(null, {})) {
+      return function (f) {
+        return function () {
+          try {
+            return Promise.resolve(f.apply(this, arguments));
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        };
+      };
+    }
+  } catch (e) {}
+
+  return function (f) {
+    // Pre-ES5.1 JavaScript runtimes don't accept array-likes in Function.apply
+    return function () {
+      var args = [];
+
+      for (var i = 0; i < arguments.length; i++) {
+        args[i] = arguments[i];
+      }
+
+      try {
+        return Promise.resolve(f.apply(this, args));
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    };
+  };
+}();
+
+var name$2 = 'passport';
+
+var passport = function passport(opts) {
+  var app = this;
+  this.bind(name$2);
+  var $ = app[name$2];
+  $.login = _async$2(function (username, password) {
     var _this = this;
 
     var uri = '/login';
@@ -191,9 +336,9 @@ var passport = function passport(opts) {
     });
   });
   return {
-    name: name$1,
+    name: name$2,
     unuse: function unuse() {
-      delete app[name$1];
+      delete app[name$2];
     }
   };
 };
@@ -207,6 +352,16 @@ function _invoke(body, then) {
 
   return then(result);
 }
+
+function _invokeIgnored(body) {
+  var result = body();
+
+  if (result && result.then) {
+    return result.then(_empty);
+  }
+}
+
+function _empty() {}
 
 function _await$2(value, then, direct) {
   if (direct) {
@@ -248,7 +403,7 @@ function _call(body, then, direct) {
   }
 }
 
-var _async$2 = function () {
+var _async$3 = function () {
   try {
     if (isNaN.apply(null, {})) {
       return function (f) {
@@ -280,10 +435,10 @@ var _async$2 = function () {
     };
   };
 }(),
-    name$2 = 'login';
+    name$3 = 'login';
 
 var login = function login(opts) {
-  var checkOrLogin = _async$2(function () {
+  var checkOrLogin = _async$3(function () {
     var store = app.store;
     var storage = app.storage;
     var doc = storage.getJson('sso');
@@ -307,17 +462,20 @@ var login = function login(opts) {
     }, function () {
       return _invoke(function () {
         if (!doc) {
-          if (!app.login) throw new Error('login 接口未实现');
-          return _await$2(app.login(), function (_app$login) {
-            doc = _app$login;
+          return _invokeIgnored(function () {
+            if (app.login) {
+              return _await$2(app.login(), function (_app$login) {
+                doc = _app$login;
 
-            if (doc && doc.token) {
-              storage.setJson('sso', doc);
-              store.sso = doc;
+                if (doc && doc.token) {
+                  storage.setJson('sso', doc);
+                  store.sso = doc;
+                }
+              });
             }
           });
         }
-      }, function (_result) {
+      }, function () {
         return doc;
       });
     });
@@ -325,9 +483,9 @@ var login = function login(opts) {
 
   var app = this;
   var doLogin = null;
-  app.checkLogin = _async$2(function () {
+  app.checkLogin = _async$3(function () {
     if (doLogin) return doLogin;
-    doLogin = new Promise(_async$2(function (resolve, reject) {
+    doLogin = new Promise(_async$3(function (resolve, reject) {
       return _continue(_catch(function () {
         return _call(checkOrLogin, function (doc) {
           resolve(doc);
@@ -358,7 +516,7 @@ var login = function login(opts) {
   };
 
   return {
-    name: name$2,
+    name: name$3,
     unuse: function unuse() {
       delete app.checkLgoin;
       delete app.isLoggedIn;
@@ -400,7 +558,7 @@ function _await$3(value, then, direct) {
   return then ? value.then(then) : value;
 }
 
-var _async$3 = function () {
+var _async$4 = function () {
   try {
     if (isNaN.apply(null, {})) {
       return function (f) {
@@ -455,6 +613,7 @@ function (_Core) {
       _this.bindType(_assertThisInitialized(_assertThisInitialized(_this)), type);
     });
     var mdls = {
+      config: config,
       sso: sso$1,
       passport: passport,
       login: login
@@ -474,12 +633,12 @@ function (_Core) {
 
   _createClass(Sdk, [{
     key: "onReady",
-    value: _async$3(function () {
+    value: _async$4(function () {
       var _this2 = this;
 
       if (_this2.ready) return _this2.ready;
       if (_this2.initing) return _this2.initing;
-      _this2.initing = new Promise(_async$3(function (resolve, reject) {
+      _this2.initing = new Promise(_async$4(function (resolve, reject) {
         _this2.once('ready', function (doc) {
           _this2.ready = true;
           resolve(_this2.ready);
@@ -491,7 +650,7 @@ function (_Core) {
     })
   }, {
     key: "request",
-    value: _async$3(function () {
+    value: _async$4(function () {
       var _this3 = this;
 
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
@@ -567,7 +726,7 @@ function (_Core) {
       var _this4 = this;
 
       var uri = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-      $[type] = _async$3(function () {
+      $[type] = _async$4(function () {
         var opts = utils.preRequest.apply(utils, arguments);
         opts.uri = "".concat(uri).concat(opts.uri);
         opts.type = type;

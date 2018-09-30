@@ -1,6 +1,7 @@
 const event = require('jm-event')
 const utils = require('jm-ms-core').utils
 const Core = require('jm-sdk-core')
+const config = require('./config')
 const sso = require('./sso')
 const passport = require('./passport')
 const login = require('./login')
@@ -18,6 +19,7 @@ class Sdk extends Core {
     })
 
     const mdls = {
+      config,
       sso,
       passport,
       login

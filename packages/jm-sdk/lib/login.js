@@ -22,11 +22,12 @@ module.exports = function (opts) {
       }
     }
     if (!doc) {
-      if (!app.login) throw new Error('login 接口未实现')
-      doc = await app.login()
-      if (doc && doc.token) {
-        storage.setJson('sso', doc)
-        store.sso = doc
+      if (app.login) {
+        doc = await app.login()
+        if (doc && doc.token) {
+          storage.setJson('sso', doc)
+          store.sso = doc
+        }
       }
     }
     return doc
