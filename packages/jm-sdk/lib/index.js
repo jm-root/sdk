@@ -70,33 +70,52 @@ class Sdk extends Core {
       opts.headers || (opts.headers = {})
       opts.headers.Authorization = sso.token
     }
+    const {logger} = this
+    const strRequest = `request:\n${JSON.stringify(opts, null, 2)}`
     try {
       let doc = await this.router.request(opts)
-      let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc, null, 2)}`
-      this.logger.debug(s)
+      logger.debug(`${strRequest}\nresult:\n${JSON.stringify(doc, null, 2)}`)
       return doc
     } catch (e) {
       if (e.data && e.data.err === 401 && this.checkLogin) {
-        this.logger.debug('not login, so checkLogin and try again')
+        logger.debug('not login, so checkLogin and try again')
         sso = await this.checkLogin()
         if (sso.token) {
           opts.headers || (opts.headers = {})
           opts.headers.Authorization = sso.token
           try {
             let doc = await this.router.request(opts)
-            let s = `request:\n${JSON.stringify(opts, null, 2)}\nresult:\n${JSON.stringify(doc, null, 2)}`
-            this.logger.debug(s)
+            logger.debug(`${strRequest}\nresult:\n${JSON.stringify(doc, null, 2)}`)
             return doc
           } catch (e) {
-            const ret = await this.emit('error', e, opts)
-            if (ret !== undefined) return ret
-            throw e
+            try {
+              const ret = await this.emit('error', e, opts)
+              if (ret !== undefined) {
+                logger.debug(`${strRequest}\nresult:\n${JSON.stringify(ret, null, 2)}`)
+                return ret
+              }
+              throw e
+            } catch (ee) {
+              logger.debug(`${strRequest}\nerr:\n${JSON.stringify(ee.data || null, null, 2)}`)
+              logger.error(ee)
+              throw ee
+            }
           }
         }
       }
-      const ret = await this.emit('error', e, opts)
-      if (ret !== undefined) return ret
-      throw e
+
+      try {
+        const ret = await this.emit('error', e, opts)
+        if (ret !== undefined) {
+          logger.debug(`${strRequest}\nresult:\n${JSON.stringify(ret, null, 2)}`)
+          return ret
+        }
+        throw e
+      } catch (ee) {
+        logger.debug(`${strRequest}\nerr:\n${JSON.stringify(ee.data || null, null, 2)}`)
+        logger.error(ee)
+        throw ee
+      }
     }
   }
 
@@ -105,8 +124,7 @@ class Sdk extends Core {
       let opts = utils.preRequest(...args)
       opts.uri = `${uri}${opts.uri}`
       opts.type = type
-      let doc = await this.request(opts)
-      return doc
+      return this.request(opts)
     }
   }
 

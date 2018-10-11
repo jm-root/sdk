@@ -7,8 +7,7 @@ module.exports = function (opts) {
 
   $.login = async function (username, password) {
     let uri = '/login'
-    let doc = await this.post(uri, {username, password})
-    return doc
+    return this.post(uri, {username, password})
   }
 
   return {

@@ -253,9 +253,8 @@ var _async$1 = function () {
       }
     };
   };
-}();
-
-var name$1 = 'sso';
+}(),
+    name$1 = 'sso';
 
 var sso = function sso(opts) {
   var app = this;
@@ -318,9 +317,8 @@ var _async$2 = function () {
       }
     };
   };
-}();
-
-var name$2 = 'passport';
+}(),
+    name$2 = 'passport';
 
 var passport = function passport(opts) {
   var app = this;
@@ -363,7 +361,7 @@ function _invokeIgnored(body) {
 
 function _empty() {}
 
-function _await$2(value, then, direct) {
+function _await(value, then, direct) {
   if (direct) {
     return then ? then(value) : value;
   }
@@ -446,7 +444,7 @@ var login = function login(opts) {
       if (doc) {
         store.sso = doc;
         return _continue(_catch(function () {
-          return _await$2(app.sso.verify(), function (_app$sso$verify) {
+          return _await(app.sso.verify(), function (_app$sso$verify) {
             doc = _app$sso$verify;
           });
         }, function (e) {
@@ -464,7 +462,7 @@ var login = function login(opts) {
         if (!doc) {
           return _invokeIgnored(function () {
             if (app.login) {
-              return _await$2(app.login(), function (_app$login) {
+              return _await(app.login(), function (_app$login) {
                 doc = _app$login;
 
                 if (doc && doc.token) {
@@ -549,7 +547,7 @@ function _catch$1(body, recover) {
   return result;
 }
 
-function _await$3(value, then, direct) {
+function _await$1(value, then, direct) {
   if (direct) {
     return then ? then(value) : value;
   }
@@ -658,7 +656,7 @@ function (_Core) {
       }
 
       var _this3$ready = _this3.ready;
-      return _await$3(_this3$ready || _this3.onReady(), function (_this3$onReady) {
+      return _await$1(_this3$ready || _this3.onReady(), function (_this3$onReady) {
         if (!_this3.router) throw new Error('invalid router');
         var opts = utils.preRequest.apply(utils, args);
         var sso$$1 = _this3.store.sso || {};
@@ -668,43 +666,45 @@ function (_Core) {
           opts.headers.Authorization = sso$$1.token;
         }
 
+        var logger = _this3.logger;
+        var strRequest = "request:\n".concat(JSON.stringify(opts, null, 2));
         return _catch$1(function () {
-          return _await$3(_this3.router.request(opts), function (doc) {
-            var s = "request:\n".concat(JSON.stringify(opts, null, 2), "\nresult:\n").concat(JSON.stringify(doc, null, 2));
-
-            _this3.logger.debug(s);
-
+          return _await$1(_this3.router.request(opts), function (doc) {
+            logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(doc, null, 2)));
             return doc;
           });
         }, function (e) {
           var _exit = false;
           return _invoke$1(function () {
             if (e.data && e.data.err === 401 && _this3.checkLogin) {
-              _this3.logger.debug('not login, so checkLogin and try again');
-
-              return _await$3(_this3.checkLogin(), function (_this3$checkLogin) {
+              logger.debug('not login, so checkLogin and try again');
+              return _await$1(_this3.checkLogin(), function (_this3$checkLogin) {
                 sso$$1 = _this3$checkLogin;
                 return function () {
                   if (sso$$1.token) {
                     opts.headers || (opts.headers = {});
                     opts.headers.Authorization = sso$$1.token;
                     return _catch$1(function () {
-                      return _await$3(_this3.router.request(opts), function (doc) {
-                        var s = "request:\n".concat(JSON.stringify(opts, null, 2), "\nresult:\n").concat(JSON.stringify(doc, null, 2));
-
-                        _this3.logger.debug(s);
-
+                      return _await$1(_this3.router.request(opts), function (doc) {
+                        logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(doc, null, 2)));
                         _exit = true;
                         return doc;
                       });
                     }, function (e) {
-                      return _await$3(_this3.emit('error', e, opts), function (ret) {
-                        if (ret !== undefined) {
-                          _exit = true;
-                          return ret;
-                        }
+                      return _catch$1(function () {
+                        return _await$1(_this3.emit('error', e, opts), function (ret) {
+                          if (ret !== undefined) {
+                            logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ret, null, 2)));
+                            _exit = true;
+                            return ret;
+                          }
 
-                        throw e;
+                          throw e;
+                        });
+                      }, function (ee) {
+                        logger.debug("".concat(strRequest, "\nerr:\n").concat(JSON.stringify(ee.data || null, null, 2)));
+                        logger.error(ee);
+                        throw ee;
                       });
                     });
                   }
@@ -712,9 +712,19 @@ function (_Core) {
               });
             }
           }, function (_result) {
-            return _exit ? _result : _await$3(_this3.emit('error', e, opts), function (ret) {
-              if (ret !== undefined) return ret;
-              throw e;
+            return _exit ? _result : _catch$1(function () {
+              return _await$1(_this3.emit('error', e, opts), function (ret) {
+                if (ret !== undefined) {
+                  logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ret, null, 2)));
+                  return ret;
+                }
+
+                throw e;
+              });
+            }, function (ee) {
+              logger.debug("".concat(strRequest, "\nerr:\n").concat(JSON.stringify(ee.data || null, null, 2)));
+              logger.error(ee);
+              throw ee;
             });
           });
         });

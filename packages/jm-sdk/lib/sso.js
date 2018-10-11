@@ -6,21 +6,18 @@ module.exports = function (opts) {
   let $ = app[name]
 
   $.verify = async function () {
-    let uri = '/verify'
-    let doc = await this.get(uri)
-    return doc
+    const uri = '/verify'
+    return this.get(uri)
   }
 
   $.touch = async function (opts) {
-    let uri = '/touch'
-    let doc = await this.post(uri)
-    return doc
+    const uri = '/touch'
+    return this.post(uri)
   }
 
   $.signout = async function () {
-    let uri = '/signout'
-    let doc = await this.get(uri)
-    return doc
+    const uri = '/signout'
+    return this.get(uri)
   }
 
   return {
