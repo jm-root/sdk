@@ -17,8 +17,6 @@ module.exports = function (opts) {
       }
       if (!doc || !doc.token) {
         doc = null
-        storage.removeItem('sso')
-        delete store.sso
       }
     }
     if (!doc) {
