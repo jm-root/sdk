@@ -16,6 +16,7 @@ module.exports = function (opts) {
         doc = e.data || {}
       }
       if (!doc || !doc.token) {
+        delete store.sso.token // 删除token
         doc = null
       }
     }
