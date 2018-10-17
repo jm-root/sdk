@@ -765,7 +765,7 @@
         return this._router;
       },
       set: function set(value) {
-        if (!value) throw new Error('invalie router');
+        if (!value) throw new Error('invalid router');
         this._router = value;
         this.ready = true;
         this.emit('ready');
