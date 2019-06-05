@@ -1,6 +1,6 @@
 {
   "name": "jm-sdk",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "description": "sdk lib",
   "main": "index.js",
   "module": "./dist/index.esm.js",

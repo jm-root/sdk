@@ -5,3 +5,4 @@ tests
 config
 yarn.lock
 logs
+rollup.config.js

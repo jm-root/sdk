@@ -4,10 +4,25 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var jmErr = _interopDefault(require('jm-err'));
 var jmEvent = _interopDefault(require('jm-event'));
+var jmModule = _interopDefault(require('jm-module'));
+var jmLogger = _interopDefault(require('jm-logger'));
+var jmErr = _interopDefault(require('jm-err'));
 var jmMsCore = _interopDefault(require('jm-ms-core'));
-var jmSdkCore = _interopDefault(require('jm-sdk-core'));
+
+function _typeof(obj) {
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -77,6 +92,288 @@ function _possibleConstructorReturn(self, call) {
 
   return _assertThisInitialized(self);
 }
+
+function _classCallCheck$1(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _defineProperties$1(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass$1(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties$1(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties$1(Constructor, staticProps);
+  return Constructor;
+}
+
+function _inherits$1(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf$1(subClass, superClass);
+}
+
+function _getPrototypeOf$1(o) {
+  _getPrototypeOf$1 = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf$$1(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf$1(o);
+}
+
+function _setPrototypeOf$1(o, p) {
+  _setPrototypeOf$1 = Object.setPrototypeOf || function _setPrototypeOf$$1(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf$1(o, p);
+}
+
+function _assertThisInitialized$1(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _possibleConstructorReturn$1(self, call) {
+  if (call && (_typeof(call) === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized$1(self);
+}
+
+var reservedKeys = ['_events', '_state', 'state'];
+
+function validKey(key) {
+  return reservedKeys.indexOf(key) === -1;
+}
+
+var Store =
+/*#__PURE__*/
+function (_event$EventEmitter) {
+  _inherits$1(Store, _event$EventEmitter);
+
+  function Store() {
+    var _this;
+
+    var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck$1(this, Store);
+
+    _this = _possibleConstructorReturn$1(this, _getPrototypeOf$1(Store).call(this, opts));
+    _this._state = {};
+    return _this;
+  }
+
+  _createClass$1(Store, [{
+    key: "listen",
+    value: function listen() {
+      var _this2 = this;
+
+      for (var _len = arguments.length, keys = new Array(_len), _key = 0; _key < _len; _key++) {
+        keys[_key] = arguments[_key];
+      }
+
+      keys.forEach(function (key) {
+        if (!validKey(key)) throw new Error("".concat(key, " can not be listened"));
+        Reflect.defineProperty(_this2, key, {
+          configurable: true,
+          enumerable: true,
+          get: function get() {
+            var value = _this2._state[key];
+
+            _this2.emit('get', key, value);
+
+            return value;
+          },
+          set: function set(value) {
+            _this2._state[key] = value;
+
+            _this2.emit('set', key, value);
+          }
+        });
+      });
+      return this;
+    }
+  }, {
+    key: "state",
+    get: function get() {
+      var value = Object.assign({}, this._state, this);
+      reservedKeys.forEach(function (key) {
+        delete value[key];
+      });
+      this.emit('get', 'state', value);
+      return value;
+    },
+    set: function set(value) {
+      var _this3 = this;
+
+      this.emit('set', 'state', value);
+      Object.keys(this).forEach(function (key) {
+        if (!validKey(key)) return;
+        var d = Reflect.getOwnPropertyDescriptor(_this3, key);
+        if (d && d.set && d.get) return;
+        delete _this3[key];
+      });
+      this._state = {};
+      Object.keys(value).forEach(function (key) {
+        _this3[key] = value[key];
+      });
+    }
+  }]);
+
+  return Store;
+}(jmEvent.EventEmitter);
+
+var store = Store;
+
+var Store$1 =
+/*#__PURE__*/
+function () {
+  function Store() {
+    _classCallCheck$1(this, Store);
+
+    jmEvent.enableEvent(this);
+    this.store = {};
+  }
+
+  _createClass$1(Store, [{
+    key: "setItem",
+    value: function setItem(k, v) {
+      this.emit('setItem', k, v);
+      this.store[k] = v;
+    }
+  }, {
+    key: "getItem",
+    value: function getItem(k, defaultV) {
+      var v = this.store[k] || defaultV;
+      this.emit('getItem', k, v);
+      return v;
+    }
+  }, {
+    key: "removeItem",
+    value: function removeItem(k) {
+      this.emit('removeItem', k);
+      delete this.store[k];
+    }
+  }, {
+    key: "setJson",
+    value: function setJson(k, o) {
+      this.emit('setJson', k, o);
+      this.setItem(k, JSON.stringify(o));
+    }
+  }, {
+    key: "getJson",
+    value: function getJson(k, defaultV) {
+      var v = this.getItem(k);
+      if (!v) return defaultV;
+      var o = JSON.parse(v) || defaultV;
+      this.emit('getJson', k, o);
+      return o;
+    }
+  }]);
+
+  return Store;
+}();
+
+var Storage =
+/*#__PURE__*/
+function () {
+  function Storage() {
+    _classCallCheck$1(this, Storage);
+
+    jmEvent.enableEvent(this);
+  }
+
+  _createClass$1(Storage, [{
+    key: "setItem",
+    value: function setItem(k, v) {
+      this.emit('setItem', k, v);
+      localStorage.setItem(k, v);
+    }
+  }, {
+    key: "getItem",
+    value: function getItem(k, defaultV) {
+      var v = localStorage.getItem(k) || defaultV;
+      this.emit('getItem', k, v);
+      return v;
+    }
+  }, {
+    key: "removeItem",
+    value: function removeItem(k) {
+      this.emit('removeItem', k);
+      localStorage.removeItem(k);
+    }
+  }, {
+    key: "setJson",
+    value: function setJson(k, o) {
+      this.emit('setJson', k, o);
+      this.setItem(k, JSON.stringify(o));
+    }
+  }, {
+    key: "getJson",
+    value: function getJson(k, defaultV) {
+      var v = this.getItem(k);
+      if (!v) return defaultV;
+      var o = JSON.parse(v) || defaultV;
+      this.emit('getJson', k, o);
+      return o;
+    }
+  }]);
+
+  return Storage;
+}();
+
+var storage = null;
+
+if (typeof localStorage !== 'undefined') {
+  storage = new Storage();
+} else {
+  storage = new Store$1();
+}
+
+var storage_1 = storage;
+
+var Sdk = function Sdk() {
+  var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  _classCallCheck$1(this, Sdk);
+
+  jmModule.enableModule(this);
+  jmEvent.enableEvent(this, {
+    async: true
+  });
+  this.logger = opts.logger || jmLogger.getLogger('sdk');
+  this.getLogger = opts.getLogger || jmLogger.getLogger;
+  this.store = opts.store || new store();
+  this.storage = opts.storage || storage_1;
+};
+
+var lib = Sdk;
+
+var index_esm = /*#__PURE__*/Object.freeze({
+  default: lib
+});
 
 var _async = function () {
   try {
@@ -472,6 +769,9 @@ var login = function login(opts) {
               });
             }
           });
+        } else {
+          storage.setJson('sso', doc);
+          store.sso = doc;
         }
       }, function () {
         return doc;
@@ -522,6 +822,8 @@ var login = function login(opts) {
     }
   };
 };
+
+var Core = ( index_esm && lib ) || index_esm;
 
 function _invoke$1(body, then) {
   var result = body();
@@ -592,7 +894,7 @@ var utils = jmMsCore.utils;
 var sso$1 = sso;
 var types = ['get', 'post', 'put', 'delete', 'patch'];
 
-var Sdk =
+var Sdk$1 =
 /*#__PURE__*/
 function (_Core) {
   _inherits(Sdk, _Core);
@@ -702,8 +1004,7 @@ function (_Core) {
                           throw e;
                         });
                       }, function (ee) {
-                        logger.debug("".concat(strRequest, "\nerr:\n").concat(JSON.stringify(ee.data || null, null, 2)));
-                        logger.error(ee);
+                        logger.error("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ee.data || null, null, 2)));
                         throw ee;
                       });
                     });
@@ -722,8 +1023,7 @@ function (_Core) {
                 throw e;
               });
             }, function (ee) {
-              logger.debug("".concat(strRequest, "\nerr:\n").concat(JSON.stringify(ee.data || null, null, 2)));
-              logger.error(ee);
+              logger.error("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ee.data || null, null, 2)));
               throw ee;
             });
           });
@@ -773,9 +1073,9 @@ function (_Core) {
   }]);
 
   return Sdk;
-}(jmSdkCore);
+}(Core);
 
-var lib = Sdk;
+var lib$1 = Sdk$1;
 
-exports.default = lib;
+exports.default = lib$1;
 //# sourceMappingURL=index.js.map

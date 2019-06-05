@@ -28,6 +28,9 @@ module.exports = function (opts) {
           store.sso = doc
         }
       }
+    } else {
+      storage.setJson('sso', doc)
+      store.sso = doc
     }
     return doc
   }

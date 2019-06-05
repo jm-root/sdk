@@ -3,3 +3,4 @@
 .svn
 tests
 yarn.lock
+rollup.config.js

@@ -96,8 +96,7 @@ class Sdk extends Core {
               }
               throw e
             } catch (ee) {
-              logger.debug(`${strRequest}\nerr:\n${JSON.stringify(ee.data || null, null, 2)}`)
-              logger.error(ee)
+              logger.error(`${strRequest}\nresult:\n${JSON.stringify(ee.data || null, null, 2)}`)
               throw ee
             }
           }
@@ -112,8 +111,7 @@ class Sdk extends Core {
         }
         throw e
       } catch (ee) {
-        logger.debug(`${strRequest}\nerr:\n${JSON.stringify(ee.data || null, null, 2)}`)
-        logger.error(ee)
+        logger.error(`${strRequest}\nresult:\n${JSON.stringify(ee.data || null, null, 2)}`)
         throw ee
       }
     }
