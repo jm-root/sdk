@@ -79,6 +79,7 @@ class Sdk extends Core {
     } catch (e) {
       if (e.data && e.data.err === 401 && this.checkLogin) {
         logger.debug('not login, so checkLogin and try again')
+        await this.logout() // clear old sso
         sso = await this.checkLogin()
         if (sso.token) {
           opts.headers || (opts.headers = {})

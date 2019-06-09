@@ -974,36 +974,39 @@ function (_Core) {
           return _invoke$1(function () {
             if (e.data && e.data.err === 401 && _this3.checkLogin) {
               logger.debug('not login, so checkLogin and try again');
-              return _await$1(_this3.checkLogin(), function (_this3$checkLogin) {
-                sso$$1 = _this3$checkLogin;
-                return function () {
-                  if (sso$$1.token) {
-                    opts.headers || (opts.headers = {});
-                    opts.headers.Authorization = sso$$1.token;
-                    return _catch$1(function () {
-                      return _await$1(_this3.router.request(opts), function (doc) {
-                        logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(doc, null, 2)));
-                        _exit = true;
-                        return doc;
-                      });
-                    }, function (e) {
+              return _await$1(_this3.logout(), function () {
+                // clear old sso
+                return _await$1(_this3.checkLogin(), function (_this3$checkLogin) {
+                  sso$$1 = _this3$checkLogin;
+                  return function () {
+                    if (sso$$1.token) {
+                      opts.headers || (opts.headers = {});
+                      opts.headers.Authorization = sso$$1.token;
                       return _catch$1(function () {
-                        return _await$1(_this3.emit('error', e, opts), function (ret) {
-                          if (ret !== undefined) {
-                            logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ret, null, 2)));
-                            _exit = true;
-                            return ret;
-                          }
-
-                          throw e;
+                        return _await$1(_this3.router.request(opts), function (doc) {
+                          logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(doc, null, 2)));
+                          _exit = true;
+                          return doc;
                         });
-                      }, function (ee) {
-                        logger.error("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ee.data || null, null, 2)));
-                        throw ee;
+                      }, function (e) {
+                        return _catch$1(function () {
+                          return _await$1(_this3.emit('error', e, opts), function (ret) {
+                            if (ret !== undefined) {
+                              logger.debug("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ret, null, 2)));
+                              _exit = true;
+                              return ret;
+                            }
+
+                            throw e;
+                          });
+                        }, function (ee) {
+                          logger.error("".concat(strRequest, "\nresult:\n").concat(JSON.stringify(ee.data || null, null, 2)));
+                          throw ee;
+                        });
                       });
-                    });
-                  }
-                }();
+                    }
+                  }();
+                });
               });
             }
           }, function (_result) {
