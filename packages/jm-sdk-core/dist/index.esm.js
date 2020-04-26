@@ -55,6 +55,19 @@ function _setPrototypeOf(o, p) {
   return _setPrototypeOf(o, p);
 }
 
+function _isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function _assertThisInitialized(self) {
   if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -71,16 +84,33 @@ function _possibleConstructorReturn(self, call) {
   return _assertThisInitialized(self);
 }
 
+function _createSuper(Derived) {
+  return function () {
+    var Super = _getPrototypeOf(Derived),
+        result;
+
+    if (_isNativeReflectConstruct()) {
+      var NewTarget = _getPrototypeOf(this).constructor;
+
+      result = Reflect.construct(Super, arguments, NewTarget);
+    } else {
+      result = Super.apply(this, arguments);
+    }
+
+    return _possibleConstructorReturn(this, result);
+  };
+}
+
 var reservedKeys = ['_events', '_state', 'state'];
 
 function validKey(key) {
   return reservedKeys.indexOf(key) === -1;
 }
 
-var Store =
-/*#__PURE__*/
-function (_event$EventEmitter) {
+var Store = /*#__PURE__*/function (_event$EventEmitter) {
   _inherits(Store, _event$EventEmitter);
+
+  var _super = _createSuper(Store);
 
   function Store() {
     var _this;
@@ -89,7 +119,7 @@ function (_event$EventEmitter) {
 
     _classCallCheck(this, Store);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Store).call(this, opts));
+    _this = _super.call(this, opts);
     _this._state = {};
     return _this;
   }
@@ -156,9 +186,7 @@ function (_event$EventEmitter) {
 
 var store = Store;
 
-var Store$1 =
-/*#__PURE__*/
-function () {
+var Store$1 = /*#__PURE__*/function () {
   function Store() {
     _classCallCheck(this, Store);
 
@@ -205,9 +233,7 @@ function () {
   return Store;
 }();
 
-var Storage =
-/*#__PURE__*/
-function () {
+var Storage = /*#__PURE__*/function () {
   function Storage() {
     _classCallCheck(this, Storage);
 
